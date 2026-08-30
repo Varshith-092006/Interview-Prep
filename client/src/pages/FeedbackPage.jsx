@@ -42,18 +42,7 @@ const ScoreRing = ({ score, label, color }) => {
 const FeedbackPage = () => {
   const { id } = useParams();
   const [feedback, setFeedback] = useState(null);
-  const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const fetchQuestions = async () => {
-    try {
-      const response = await api.get(`/questions/interview/${id}`);
-      setQuestions(response.data.questions);
-    } catch (error) {
-      console.log(error);
-      setQuestions([]);
-    }
-  };
 
   const fetchFeedback = async () => {
     const toastId = toast.loading("Loading AI feedback...");
@@ -73,8 +62,7 @@ const FeedbackPage = () => {
 
   useEffect(() => {
     fetchFeedback();
-    fetchQuestions();
-  }, []);
+  }, [id]);
 
   if (loading) {
     return (
@@ -238,7 +226,7 @@ const FeedbackPage = () => {
           <h2 className="text-xl font-bold mb-6">Per Question Analysis</h2>
 
           <div className="space-y-4">
-            {(feedback.perQuestionFeedback?.length ? feedback.perQuestionFeedback : questions).map(
+            {(feedback.perQuestionFeedback || []).map(
               (question, index) => (
                 <details
                   key={question._id || index}

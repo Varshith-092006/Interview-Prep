@@ -2,7 +2,6 @@ const Interview = require("../models/Interview");
 const InterviewSession = require("../models/InterviewSession");
 const Resume = require("../models/Resume");
 const Transcript = require("../models/Transcript");
-const evaluateRealtimeAnswer = require("../services/ai/evaluateRealtimeAnswer");
 
 // ---------- MODE-SPECIFIC QUESTION GUIDANCE ----------
 

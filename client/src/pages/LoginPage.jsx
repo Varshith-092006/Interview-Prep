@@ -16,7 +16,6 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [resetSent, setResetSent] = useState(false);
-  const [devResetUrl, setDevResetUrl] = useState("");
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -27,11 +26,8 @@ const LoginPage = () => {
     try {
       setLoading(true);
       if (isForgotPassword) {
-        const { data } = await api.post("/auth/forgot-password", { email: formData.email });
+        await api.post("/auth/forgot-password", { email: formData.email });
         setResetSent(true);
-        if (data?.devResetUrl) {
-          setDevResetUrl(data.devResetUrl);
-        }
         toast.success("Password reset link sent!");
       } else {
         const response = await api.post("/auth/login", formData);
@@ -81,22 +77,11 @@ const LoginPage = () => {
             <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm">
               We've sent a password reset link to <strong>{formData.email}</strong>. Please check your inbox.
             </div>
-            
-            {devResetUrl && (
-              <div className="p-4 rounded-xl bg-violet-500/10 border border-violet-500/20">
-                <span className="block text-xs text-violet-400 font-bold uppercase tracking-wider mb-2">Developer Mode Bypass</span>
-                <p className="text-sm text-gray-300 mb-3">Since you haven't configured an email server yet, click the link below to securely reset your password right now:</p>
-                <a href={devResetUrl} className="block text-sm text-cyan-400 hover:text-cyan-300 break-all bg-black/40 p-3 rounded-lg border border-white/5 font-mono">
-                  {devResetUrl}
-                </a>
-              </div>
-            )}
 
             <button
               onClick={() => {
                 setIsForgotPassword(false);
                 setResetSent(false);
-                setDevResetUrl("");
               }}
               className="w-full bg-white/5 text-white border border-white/10 py-3.5 rounded-xl font-semibold text-sm hover:bg-white/10 transition"
             >

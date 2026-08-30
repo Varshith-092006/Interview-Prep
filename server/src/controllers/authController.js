@@ -129,9 +129,9 @@ exports.getCurrentUser = async (req, res) => {
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
-    
+
     const user = await User.findOne({ email });
-    
+
     if (!user) {
       return res.status(200).json({
         success: true,
@@ -156,32 +156,36 @@ exports.forgotPassword = async (req, res) => {
     // Create reset url
     const resetUrl = `${process.env.CLIENT_URL || "http://localhost:5173"}/reset-password/${resetToken}`;
 
-    const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please click on the following link to complete the process: \n\n ${resetUrl}`;
+    const message = `You have requested a password reset for your PrepWise account.\n\nPlease go to this link to reset your password:\n${resetUrl}\n\nThis link will expire in 10 minutes.\n\nIf you did not request this, please ignore this email.`;
+
     const htmlMessage = `
-      <h3>Password Reset Request</h3>
-      <p>You requested a password reset. Please click the link below to set a new password:</p>
-      <a href="${resetUrl}" target="_blank" style="display:inline-block;padding:10px 20px;margin-top:10px;background-color:#7c3aed;color:#ffffff;text-decoration:none;border-radius:8px;">Reset Password</a>
-      <p style="margin-top:20px;font-size:12px;color:#666;">If you did not request this, please ignore this email.</p>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+        <h2 style="color: #6366f1; text-align: center;">PrepWise</h2>
+        <p>Hello,</p>
+        <p>You requested to reset your password. Please click the button below to set a new password:</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${resetUrl}" style="background-color: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Reset Password</a>
+        </div>
+        <p style="color: #666; font-size: 13px;">This link will expire in 10 minutes.</p>
+        <p style="color: #999; font-size: 12px;">If you didn't request a password reset, you can safely ignore this email.</p>
+      </div>
     `;
 
     try {
       await sendEmail({
         email: user.email,
-        subject: "PrepWise Password Reset Token",
-        message: message,
+        subject: "PrepWise Password Reset Request",
+        message,
         html: htmlMessage,
       });
-
-      console.log(`[Dev Mode] Password reset URL for ${email}: ${resetUrl}`);
 
       res.status(200).json({
         success: true,
         message: "If an account with that email exists, a reset link has been sent.",
-        devResetUrl: resetUrl // Kept for dev mode UI
       });
     } catch (error) {
       console.log("Email could not be sent", error);
-      
+
       // Rollback tokens
       user.resetPasswordToken = undefined;
       user.resetPasswordExpire = undefined;

@@ -1,117 +1,46 @@
-const Question = require(
-  "../models/Question"
-);
+const Feedback = require("../models/Feedback");
+const model = require("../config/gemini");
+const Transcript = require("../models/Transcript");
+const Interview = require("../models/Interview");
 
-const Feedback = require(
-  "../models/Feedback"
-);
+exports.generateInterviewFeedback = async (req, res) => {
+  try {
+    const interviewId = req.params.interviewId;
 
-const model = require(
-  "../config/gemini"
-);
+    // CHECK EXISTING FEEDBACK
+    const existingFeedback = await Feedback.findOne({
+      interview: interviewId,
+    });
 
-const Transcript = require(
-  "../models/Transcript"
-);
+    if (existingFeedback) {
+      return res.status(200).json({
+        success: true,
+        feedback: existingFeedback,
+      });
+    }
 
-const Interview = require(
-  "../models/Interview"
-);
+    // GET INTERVIEW
+    const interview = await Interview.findById(interviewId);
 
-const generateFeedback =
-  require(
-    "../services/ai/feedbackGenerator"
-  );
+    if (!interview) {
+      return res.status(404).json({
+        success: false,
+        message: "Interview not found",
+      });
+    }
 
-exports.generateInterviewFeedback =
-  async (req, res) => {
+    // GET TRANSCRIPTS FOR VOICE INTERVIEW EVALUATION
+    const transcripts = await Transcript.find({
+      interview: interviewId,
+    }).sort({
+      createdAt: 1,
+    });
 
-    try {
+    const transcriptText = transcripts
+      .map((message) => `${message.speaker}: ${message.text}`)
+      .join("\n");
 
-      const interviewId =
-        req.params.interviewId;
-
-      // CHECK EXISTING FEEDBACK
-
-      const existingFeedback =
-        await Feedback.findOne({
-          interview:
-            interviewId,
-        });
-
-      if (
-        existingFeedback
-      ) {
-
-        return res.status(200).json({
-
-          success: true,
-
-          feedback:
-            existingFeedback,
-        });
-      }
-
-      // GET INTERVIEW
-
-      const interview =
-        await Interview.findById(
-          interviewId
-        );
-
-      if (!interview) {
-
-        return res.status(404).json({
-
-          success: false,
-
-          message:
-            "Interview not found",
-        });
-      }
-
-      let aiFeedback;
-
-      // RESUME INTERVIEW FEEDBACK
-
-      if (
-        interview.interviewType ===
-        "Resume"
-      ) {
-
-        const questions =
-          await Question.find({
-            interview:
-              interviewId,
-          });
-
-        aiFeedback =
-          await generateFeedback(
-            questions
-          );
-      }
-
-      // VOICE INTERVIEW FEEDBACK
-
-      else {
-
-        const transcripts =
-          await Transcript.find({
-            interview:
-              interviewId,
-          }).sort({
-            createdAt: 1,
-          });
-
-        const transcriptText =
-          transcripts
-            .map(
-              (message) =>
-                `${message.speaker}: ${message.text}`
-            )
-            .join("\n");
-
-        const prompt = `
+    const prompt = `
 You are an expert AI interview evaluator.
 
 Analyze this realtime interview transcript.
@@ -143,22 +72,11 @@ TRANSCRIPT:
 ${transcriptText}
 `;
 
-        const result =
-          await model.generateContent(
-            prompt
-          );
-
-        const response =
-          await result.response.text();
-
-        aiFeedback =
-          JSON.parse(
-            response.replace(
-              /```json|```/g,
-              ""
-            )
-          );
-      }
+    const result = await model.generateContent(prompt);
+    const response = await result.response.text();
+    const aiFeedback = JSON.parse(
+      response.replace(/```json|```/g, "")
+    );
 
       // SAVE FEEDBACK
 

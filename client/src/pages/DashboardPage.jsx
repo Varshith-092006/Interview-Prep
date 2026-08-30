@@ -9,7 +9,7 @@ import api from "../services/api";
 const DashboardPage = () => {
   const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [search, setSearch]  = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterDifficulty, setFilterDifficulty] = useState("All");
   const [filterMode, setFilterMode] = useState("All");

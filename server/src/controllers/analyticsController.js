@@ -1,38 +1,11 @@
-const Interview = require(
-  "../models/Interview"
-);
+const Interview = require("../models/Interview");
 
-const Question = require(
-  "../models/Question"
-);
-
-exports.getAnalytics =
-  async (req, res) => {
-
-    try {
-
-      // ALL USER INTERVIEWS
-
-      const interviews =
-        await Interview.find({
-          user: req.user.id,
-        });
-
-      // ALL USER QUESTIONS
-
-      const questions =
-        await Question.find()
-          .populate({
-            path: "interview",
-            match: {
-              user: req.user.id,
-            },
-          });
-
-      const validQuestions =
-        questions.filter(
-          (q) => q.interview
-        );
+exports.getAnalytics = async (req, res) => {
+  try {
+    // ALL USER INTERVIEWS
+    const interviews = await Interview.find({
+      user: req.user.id,
+    });
 
       // TOTALS
 

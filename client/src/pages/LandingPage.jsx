@@ -124,12 +124,14 @@ const LandingPage = () => {
               Start Interview
               <span className="group-hover:translate-x-1 transition-transform">→</span>
             </button>
-            <button
-              onClick={() => navigate("/login")}
-              className="px-8 py-4 rounded-2xl border border-white/10 text-white font-medium text-base hover:bg-white/5 transition-all duration-300"
-            >
-              Sign In
-            </button>
+            {!localStorage.getItem("token") && (
+              <button
+                onClick={() => navigate("/login")}
+                className="px-8 py-4 rounded-2xl border border-white/10 text-white font-medium text-base hover:bg-white/5 transition-all duration-300"
+              >
+                Sign In
+              </button>
+            )}
           </motion.div>
         </div>
 
